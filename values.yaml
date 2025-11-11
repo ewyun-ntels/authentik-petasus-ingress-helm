@@ -611,7 +611,6 @@ server:
     # annotations: {}
     annotations:
       nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
-      nginx.ingress.kubernetes.io/proxy-set-headers: "{{ .Release.N }}/ak-proxy-headers"
       nginx.ingress.kubernetes.io/ssl-redirect: "true"
       cert-manager.io/cluster-issuer: petasus-ca
     # -- additional ingress labels

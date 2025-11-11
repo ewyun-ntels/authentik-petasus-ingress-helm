@@ -17,6 +17,9 @@ metadata:
   {{- with .Values.server.ingress.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
+    {{- with .Values.server.ingress.proxySetHeaders }}
+    nginx.ingress.kubernetes.io/proxy-set-headers: {{ printf "%s/%s" .Release.Namespace . | quote }}
+    {{- end }}
   {{- end }}
 spec:
   {{- with .Values.server.ingress.ingressClassName }}

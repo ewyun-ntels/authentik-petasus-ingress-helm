@@ -12,6 +12,7 @@ global:
 ## Petasus related configuration
   brand:
     baseURL: "https://192.168.15.157:30881"
+  HTTPNodePort: &HTTPNodePort 30881
 
 ## Petasus related configuration
 
@@ -606,10 +607,11 @@ server:
     # -- enable an ingress resource for the authentik server
     enabled: true
     # -- additional ingress annotations
+    proxySetHeaders: "ak-proxy-headers"
     # annotations: {}
     annotations:
       nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
-      nginx.ingress.kubernetes.io/proxy-set-headers: "{{ .Release.Namespace }}/ak-proxy-headers"
+      nginx.ingress.kubernetes.io/proxy-set-headers: "{{ .Release.N }}/ak-proxy-headers"
       nginx.ingress.kubernetes.io/ssl-redirect: "true"
       cert-manager.io/cluster-issuer: petasus-ca
     # -- additional ingress labels
@@ -1245,4 +1247,4 @@ ingresscontroller:
       enableHttp: false      # HTTP 비활성
       enableHttps: true      # HTTPS만 사용
       nodePorts:
-        https: 30881         # 기존과 안 겹치게
+        https: *HTTPNodePort

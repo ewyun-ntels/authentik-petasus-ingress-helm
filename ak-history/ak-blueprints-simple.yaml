@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ak-blueprints-simple
+data:
+  simple-oauth.yaml: |
+    version: 1
+    metadata:
+      name: "Simple OAuth Provider"
+    entries:
+      - model: authentik_providers_oauth2.oauth2provider
+        identifiers:
+          name: "Petasus Auth Provider"
+        attrs:
+          name: "Petasus Auth Provider"
+          authorization_flow: !Find [authentik_flows.flow, [slug, "default-authorization-flow"]]
+          invalidation_flow: !Find [authentik_flows.flow, [slug, "default-invalidation-flow"]]
+          client_type: "confidential"
+          client_id: "petasus-oauth2-client-2024"
+          client_secret: "petasus-oauth2-secret-k8s-2024-secure-token-12345"
+          redirect_uris:
+            - "http://ks-console.kubesphere-system.svc.cluster.local:80/oauth/redirect/petasus-auth"

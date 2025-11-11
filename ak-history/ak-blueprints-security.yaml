@@ -1,0 +1,228 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ak-blueprints-security
+data:
+  10-oauth-provider.yaml: |
+    version: 1
+    metadata:
+      name: "Petasus OAuth Provider Blueprint"
+      labels:
+        blueprint: "oauth-provider"
+    entries:
+      # === OAuth2/OpenID Provider 생성 ===
+      - model: authentik_providers_oauth2.oauth2provider
+        state: present
+        identifiers:
+          client_id: "petasus-oauth2-client-2024"
+        attrs:
+          name: "Petasus Auth Provider"
+          authorization_flow: !Find [authentik_flows.flow, [slug, "default-authorization-flow"]]
+          invalidation_flow: !Find [authentik_flows.flow, [slug, "default-invalidation-flow"]]
+          client_type: "confidential"
+          client_id: "petasus-oauth2-client-2024"
+          client_secret: "petasus-oauth2-secret-k8s-2024-secure-token-12345"
+          redirect_uris: 
+            - "http://ks-console.kubesphere-system.svc.cluster.local:80/oauth/redirect/petasus-auth"
+
+      # === 2) OAuth Application 생성 ===
+      - model: authentik_core.application
+        id: app_petasus_oauth
+        attrs:
+          name: "Petasus Auth Application"
+          slug: "petasus-auth"
+          provider: !KeyOf provider_oauth_petasus
+          meta_launch_url: "https://petasus.example.com"
+          meta_description: "Petasus Authentication OAuth2/OpenID Connect Application"
+          meta_publisher: "Petasus Team"
+          policy_engine_mode: "any"
+          open_in_new_tab: false
+
+      # === 3) 안전한 Email 스코프 매핑 ===
+      - model: authentik_providers_oauth2.scopemapping
+        id: scope_email_safe
+        attrs:
+          name: "Safe Email Scope"
+          scope_name: "email"
+          description: "Email with safe handling for empty values"
+          expression: |
+            # 비어있어도 항상 필드가 나오게 안전하게 처리
+            em = user.email or ""
+            ver = getattr(user, "email_verified", False)
+            return {"email": em, "email_verified": ver}
+
+      # === 4) 안전한 Name 스코프 매핑 ===
+      - model: authentik_providers_oauth2.scopemapping
+        id: scope_name_safe
+        attrs:
+          name: "Safe Name Scope"
+          scope_name: "profile"
+          description: "Name with safe handling for empty values"
+          expression: |
+            full_name = user.first_name + " " + user.last_name if user.first_name and user.last_name else user.username
+            return {"name": full_name}
+
+      # === 5) 안전한 Preferred Username 스코프 매핑 ===
+      - model: authentik_providers_oauth2.scopemapping
+        id: scope_preferred_username_safe
+        attrs:
+          name: "Safe Preferred Username Scope"
+          scope_name: "profile"
+          description: "Preferred username with safe handling"
+          expression: |
+            username = user.username or ""
+            return {"preferred_username": username}
+
+      # === 6) 안전한 Sub 스코프 매핑 ===
+      - model: authentik_providers_oauth2.scopemapping
+        id: scope_sub_safe
+        attrs:
+          name: "Safe Sub Scope"
+          scope_name: "openid"
+          description: "Subject identifier with safe string conversion"
+          expression: |
+            # Example to map sub to username as a string
+            def normalize_sub(u: str) -> str:
+                if not u:
+                    return ""
+                return str(u)  # Ensure `sub` is returned as a string
+
+            return {"sub": normalize_sub(user.id)}
+
+      # === 7) 추가 스코프 매핑 생성 (필요시) ===
+      - model: authentik_providers_oauth2.scopemapping
+        id: scope_petasus_custom
+        attrs:
+          name: "Petasus Custom Scope"
+          scope_name: "petasus"
+          description: "Petasus specific claims for user role"
+          expression: |
+            # 사용자 정의 특성에서 role 가져오기
+            user_role = ""
+            if hasattr(user, 'attributes') and user.attributes:
+                user_role = user.attributes.get("role", "")
+            
+            return {
+                "role": user_role,
+            }
+
+      # === 8) API 접근을 위한 스코프 매핑 ===
+      - model: authentik_providers_oauth2.scopemapping
+        id: scope_petasus_api
+        attrs:
+          name: "Petasus API Access Scope"
+          scope_name: "petasus:api"
+          description: "Petasus API access for user management"
+          expression: |
+            return {
+                "api_access": True,
+                "api_permissions": ["users.create", "users.read", "users.update", "users.delete"],
+                "api_version": "v3",
+                "issued_for": "petasus-system",
+            }
+
+      # === 9) 관리자 권한 스코프 매핑 (필요시) ===
+      - model: authentik_providers_oauth2.scopemapping
+        id: scope_petasus_admin
+        attrs:
+          name: "Petasus Admin Scope"
+          scope_name: "petasus:admin"
+          description: "Petasus admin privileges for full API access"
+          expression: |
+            # 관리자 그룹에 속한 사용자만 admin scope 제공
+            admin_groups = ["authentik Admins", "petasus-admins", "superusers"]
+            user_groups = [group.name for group in user.ak_groups.all()]
+            is_admin = any(group in admin_groups for group in user_groups)
+            
+            if is_admin:
+                return {
+                    "admin_access": True,
+                    "full_api_access": True,
+                    "can_manage_users": True,
+                    "can_manage_groups": True,
+                    "can_manage_applications": True,
+                }
+            else:
+                return {}
+
+      # === 10) 서비스 계정 사용자 생성 ===
+      - model: authentik_core.user
+        id: user_petasus_service
+        attrs:
+          username: "petasus-service-account"
+          name: "Petasus Service Account"
+          email: "service@petasus.local"
+          is_active: true
+          type: "service_account"
+          path: "services"
+
+      # === 11) 서비스 계정용 그룹 생성 ===
+      - model: authentik_core.group
+        id: group_petasus_service
+        attrs:
+          name: "petasus-service-users"
+          is_superuser: false
+          parent: null
+
+      # === 12) 서비스 계정을 그룹에 추가 ===
+      - model: authentik_core.user_groups
+        id: user_group_petasus_service
+        attrs:
+          user: !KeyOf user_petasus_service
+          group: !KeyOf group_petasus_service
+
+      # === 13) 서비스 계정용 API 토큰 생성 ===
+      - model: authentik_core.token
+        id: token_petasus_service
+        attrs:
+          identifier: "petasus-api-token-2024"
+          key: "petasus-service-api-key-secure-2024-abcdef123456"
+          user: !KeyOf user_petasus_service
+          description: "Petasus Service Account API Token for user management"
+          expires: null  # 만료되지 않음
+          expiring: false
+
+      # === 14) akadmin 사용자 MFA 면제 정책 ===
+      - model: authentik_policies_expression.expressionpolicy
+        id: policy_akadmin_mfa_bypass
+        attrs:
+          name: "akadmin MFA Bypass Policy"
+          expression: |
+            # akadmin 사용자는 MFA 건너뛰기
+            if hasattr(request, "user") and request.user:
+                return request.user.username == "akadmin"
+            return False
+
+      # === 15) akadmin MFA 면제 정책을 인증 플로우에 바인딩 ===
+      - model: authentik_policies.policybinding
+        id: bind_akadmin_mfa_bypass
+        attrs:
+          target: !Find [authentik_flows.flow, [slug, "default-authentication-flow"]]
+          order: 85  # MFA 단계 직전에 평가
+          enabled: true
+          timeout: 0
+          policy: !KeyOf policy_akadmin_mfa_bypass
+          negate: false  # 정책이 True면 단계 건너뛰기
+
+      # === 16) Petasus 브랜드 생성 ===
+      - model: authentik_tenants.tenant
+        id: tenant_petasus_brand
+        attrs:
+          domain: "petasus.local"
+          default: true
+          branding_title: "Petasus"
+          branding_logo: "http://ks-console.kubesphere-system.svc.cluster.local:80/assets/logo.svg"
+          branding_favicon: "http://ks-console.kubesphere-system.svc.cluster.local:80/assets/logo.svg"
+          attributes:
+            settings:
+              branding:
+                background: "http://ks-console.kubesphere-system.svc.cluster.local:80/assets/resources/images/img/img_login.svg"
+                hide_managed_footer: true
+                hide_powered_by: true
+          flow_authentication: !Find [authentik_flows.flow, [slug, "default-authentication-flow"]]
+          flow_invalidation: !Find [authentik_flows.flow, [slug, "default-invalidation-flow"]]
+          flow_recovery: !Find [authentik_flows.flow, [slug, "default-recovery-flow"]]
+          flow_unenrollment: !Find [authentik_flows.flow, [slug, "default-unenrollment-flow"]]
+          flow_user_settings: !Find [authentik_flows.flow, [slug, "default-user-settings-flow"]]
+          flow_device_code: !Find [authentik_flows.flow, [slug, "default-device-code-flow"]]
+

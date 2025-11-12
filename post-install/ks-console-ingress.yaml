@@ -1,7 +1,7 @@
 apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
-  name: petasus-selfsigned
+  name: petasus-core-selfsigned
   namespace: kubesphere-system
 spec:
   selfSigned: {}
@@ -9,31 +9,31 @@ spec:
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: petasus-ca-tls
+  name: petasus-core-tls
   namespace: kubesphere-system
 spec:
-  secretName: petasus-ca-tls
+  secretName: petasus-core-tls
   dnsNames:
     - petasus.io.local
   privateKey:
     rotationPolicy: Never       
   issuerRef:
     kind: Issuer
-    name: petasus-selfsigned
+    name: petasus-core-selfsigned
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: petasus-ingress-core
+  name: petasus-core
   namespace: kubesphere-system
   annotations:
     nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    cert-manager.io/cluster-issuer: petasus-selfsigned
+    cert-manager.io/issuer: petasus-core-selfsigned
 spec:
   ingressClassName: nginx-petasus-core
   tls:
-    - secretName: petasus-ca-tls
+    - secretName: petasus-core-tls
       hosts:
         - petasus.io.local
   rules:

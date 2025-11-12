@@ -66,6 +66,13 @@ data:
             ak-flow-executor .pf-c-login__main .pf-c-form {
               margin-top: 0 !important;
             }
+            ak-flow-card::part(subtitle),
+            ak-flow-card::part(description) {
+              display: none !important;
+            }
+            ak-flow-card::part(body) p:first-of-type {
+              display: none !important;
+            }
 
       # -------------------------
       # Users / Groups / Token
@@ -358,7 +365,7 @@ data:
         identifiers:
           slug: "petasus-oidc"
         attrs:
-         #name: "Petasus KubeSphere Integration"
-          name: "\u200B"
+          name: "Petasus"
+          #name: "\u200B"
           provider: !Find [authentik_providers_oauth2.oauth2provider, [name, "Petasus Auth Provider"]]
           policy_engine_mode: "all"

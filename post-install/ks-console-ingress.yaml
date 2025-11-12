@@ -29,7 +29,7 @@ metadata:
   annotations:
     nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    cert-manager.io/issuer: petasus-core-selfsigned
+ #   cert-manager.io/issuer: petasus-core-selfsigned
 spec:
   ingressClassName: nginx-petasus-core
   tls:

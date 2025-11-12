@@ -11,7 +11,7 @@ kubeVersionOverride: ""
 global:
 ## Petasus related configuration
   brand:
-    baseURL: "https://192.168.15.157:30880"
+    baseURL: "https://172.16.200.203:30880"
   HTTPNodePort: &HTTPNodePort 30880
 
 ## Petasus related configuration
@@ -612,7 +612,7 @@ server:
     annotations:
       nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
       nginx.ingress.kubernetes.io/ssl-redirect: "true"
-      cert-manager.io/issuer: petasus-auth-selfsigned
+    #  cert-manager.io/issuer: petasus-auth-selfsigned
     # -- additional ingress labels
     labels: {}
     # -- defines which ingress controller will implement the resource

@@ -345,7 +345,7 @@ data:
           client_secret: "petasus-oauth2-secret-k8s-2024-secure-token-12345"
           redirect_uris:
             - matching_mode: strict
-              url: "{{ .Values.global.brand.baseURL}}/oauth/redirect/petasus-kubesphere"
+              url: "{{ .Values.global.brand.baseURL}}/oauth/redirect/petasus-oidc"
           property_mappings:
             - !Find [authentik_providers_oauth2.scopemapping, [name, "preferred_username"]]
             - !Find [authentik_providers_oauth2.scopemapping, [name, "sub"]]
@@ -356,8 +356,9 @@ data:
 
       - model: authentik_core.application
         identifiers:
-          slug: "petasus-kubesphere"
+          slug: "petasus-oidc"
         attrs:
-          name: "Petasus KubeSphere Integration"
+         #name: "Petasus KubeSphere Integration"
+          name: "\u200B"
           provider: !Find [authentik_providers_oauth2.oauth2provider, [name, "Petasus Auth Provider"]]
           policy_engine_mode: "all"

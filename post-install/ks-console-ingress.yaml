@@ -9,10 +9,12 @@ spec:
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: petasus-core-tls
+  name: petasus-core-cert
   namespace: kubesphere-system
 spec:
   secretName: petasus-core-tls
+  duration: 876600h
+  renewBefore: 8760h
   dnsNames:
     - petasus.io.local
   privateKey:

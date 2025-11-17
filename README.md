@@ -14,6 +14,8 @@ authentik is an open-source Identity Provider focused on flexibility and versati
 **Homepage:** <https://goauthentik.io>
 
 ## How to deploy:
+1. Authentik, Ingress 설치
+
 global.brand.baseURL : 외부연동 IP:PORT 
 
 global.HTTPNodePort : NodePort
@@ -22,6 +24,10 @@ helm upgrade --install petasus-access . \
   -n petasus-access --create-namespace \
   --set-string global.brand.baseURL=https://192.168.15.157:30880 \
   --set global.HTTPNodePort=30880
+```
+2. 설치가 완료된 후에 ks-console 용 ingress 배포
+```shell
+kubectl apply -f post-install/ks-console-ingress.yaml
 ```
 
 ## Example values to get started:

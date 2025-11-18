@@ -2,12 +2,16 @@
 # ks-users-to-authentik.sh
 # KubeSphere User -> Authentik 사용자 생성 + 비밀번호 설정 스크립트
 # 요구 사항:
-# - oc, jq, curl 필요
+# - kubectl, jq, curl 필요
 # - 환경변수 AUTHENTIK_URL, ACCESS_TOKEN 설정 필요
 #   예) export AUTHENTIK_URL="https://192.168.15.157:31294"
 #       export ACCESS_TOKEN="eyJhbGciOi..."  # Authentik API 토큰
 
 set -euo pipefail
+
+# oc 명령어를 kubectl로 alias
+shopt -s expand_aliases
+alias oc='kubectl'
 
 # Help 함수
 show_help() {
@@ -46,16 +50,16 @@ API_BASE="$(printf "%s/api/v3" "${AUTHENTIK_URL%/}")"
 CURL_BASE=(curl -fsSL -k -H "Authorization: Bearer ${ACCESS_TOKEN}" -H "Accept: application/json")
 
 need() { command -v "$1" >/dev/null 2>&1 || { echo "❌ need $1"; exit 1; }; }
-need oc; need jq; need curl
+need kubectl; need jq; need curl
 
 echo "▶️  KubeSphere Users 조회..."
 mapfile -t KS_USERS < <(
-  oc get users.iam.kubesphere.io -o json \
+  kubectl get users.iam.kubesphere.io -o json \
   | jq -r '.items[] | [.metadata.name, (.spec.email // "")] | @tsv'
 )
 
 echo "▶️  GlobalRoleBindings(JSON) 1회 조회..."
-GRB_JSON="$(oc get globalrolebindings.iam.kubesphere.io -A -o json || true)"
+GRB_JSON="$(kubectl get globalrolebindings.iam.kubesphere.io -A -o json || true)"
 
 get_role_for_user() {
   local username="$1" grb_json="$2"

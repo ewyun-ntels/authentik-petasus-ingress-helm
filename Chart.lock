@@ -8,5 +8,11 @@ dependencies:
 - name: authentik-remote-cluster
   repository: https://charts.goauthentik.io
   version: 2.1.0
-digest: sha256:52ac56939f320656cdd0f6dbf7420139146f5f986c91a9c8aa4255dbbfd06b64
-generated: "2025-09-30T10:58:03.422542858Z"
+- name: ingress-nginx
+  repository: file://charts/ingress-nginx
+  version: 4.13.0
+- name: nginx-gateway-fabric
+  repository: file://charts/nginx-gateway-fabric
+  version: 2.3.0
+digest: sha256:7cf86c69fc763870ab648fca2a3d04bfcd625fbeafd853d52aa270e5809fd5e6
+generated: "2026-01-08T15:02:37.353908297+09:00"

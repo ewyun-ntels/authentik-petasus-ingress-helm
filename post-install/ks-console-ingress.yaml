@@ -16,7 +16,7 @@ spec:
   duration: 876600h
   renewBefore: 8760h
   dnsNames:
-    - petasus.io.local
+    - console.petasus.local
   privateKey:
     rotationPolicy: Never       
   issuerRef:
@@ -53,9 +53,10 @@ spec:
   tls:
     - secretName: petasus-core-tls
       hosts:
-        - petasus.io.local
+        - console.petasus.local
   rules:
-    - http:
+    - host: console.petasus.local
+      http:
         paths:
           - path: /
             pathType: Prefix

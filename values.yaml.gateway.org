@@ -12,7 +12,6 @@ global:
 ## Petasus related configuration
   externalDomain: &externalDomain "console.petasus.local"
   HTTPNodePort: &HTTPNodePort 30880
-  forwardedHost: &forwardedHost "console.petasus.local:30880"
   brand:
     #baseURL: "https://172.16.200.203:30880"
     #baseURL: &baseURL "https://console.petasus.local:30880"
@@ -695,32 +694,32 @@ server:
 
       # -- Route filters
       filters: 
-        - type: RequestHeaderModifier
-          requestHeaderModifier:
-            set:
-              - name: X-Forwarded-Host
-                value: *forwardedHost
+        - type: ExtensionRef
+          extensionRef:
+            group: gateway.nginx.org
+            kind: SnippetsFilter
+            name: accept-ip-sni
 
       # -- Additional custom rules that can be added to the route
       additionalRules: 
-        #- matches:
-        #    - path:
-        #        type: Exact
-        #        value: /auth
-        #  backendRefs:
-        #    - name: petasus-access-authentik-server
-        #      port: 80      
-        #  filters:
-        #    - type: ExtensionRef
-        #      extensionRef:  
-        #        group: gateway.nginx.org
-        #        kind: SnippetsFilter
-        #        name: accept-ip-sni      
+        - matches:
+            - path:
+                type: Exact
+                value: /auth
+          backendRefs:
+            - name: petasus-access-authentik-server
+              port: 80      
+          filters:
+            - type: ExtensionRef
+              extensionRef:  
+                group: gateway.nginx.org
+                kind: SnippetsFilter
+                name: accept-ip-sni      
         - matches:
             - path:
                 type: PathPrefix
                 value: /
-          filters: 
+          filters:
             - type: ExtensionRef
               extensionRef:
                 group: gateway.nginx.org

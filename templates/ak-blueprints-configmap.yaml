@@ -22,10 +22,10 @@ data:
           default: true
         attrs:
           branding_title: "Petasus Identity Provider"
-          branding_logo: "{{ .Values.global.brand.baseURL}}/assets/logo.svg"
-          branding_favicon: "{{ .Values.global.brand.baseURL}}/assets/logo.svg"
-          branding_background: "{{ .Values.global.brand.baseURL}}/assets/resources/images/img/img_login.svg"
-          branding_default_flow_background: "{{ .Values.global.brand.baseURL}}/assets/resources/images/img/img_login.svg"
+          branding_logo: "https://{{ .Values.global.externalDomain }}:{{ .Values.global.HTTPNodePort }}/assets/logo.svg"
+          branding_favicon: "https://{{ .Values.global.externalDomain }}:{{ .Values.global.HTTPNodePort }}/assets/logo.svg"
+          branding_background: "https://{{ .Values.global.externalDomain }}:{{ .Values.global.HTTPNodePort }}/assets/resources/images/img/img_login.svg"
+          branding_default_flow_background: "https://{{ .Values.global.externalDomain }}:{{ .Values.global.HTTPNodePort }}/assets/resources/images/img/img_login.svg"
           ui_footer_links: []
           ui_show_footer: false
           ui_theme: "light"
@@ -316,7 +316,7 @@ data:
           name: "petasus-logout-redirect"
         attrs:
           mode: "static"
-          target_static : "{{ .Values.global.brand.baseURL}}/"
+          target_static : "https://{{ .Values.global.externalDomain }}:{{ .Values.global.HTTPNodePort }}/"
 
       - model: authentik_flows.flowstagebinding
         identifiers:
@@ -352,7 +352,7 @@ data:
           client_secret: "petasus-oauth2-secret-k8s-2024-secure-token-12345"
           redirect_uris:
             - matching_mode: strict
-              url: "{{ .Values.global.brand.baseURL}}/oauth/redirect/petasus-oidc"
+              url: "https://{{ .Values.global.externalDomain }}:{{ .Values.global.HTTPNodePort }}/oauth/redirect/petasus-oidc"
           property_mappings:
             - !Find [authentik_providers_oauth2.scopemapping, [name, "preferred_username"]]
             - !Find [authentik_providers_oauth2.scopemapping, [name, "sub"]]

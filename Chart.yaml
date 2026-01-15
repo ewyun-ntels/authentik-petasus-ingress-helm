@@ -55,7 +55,12 @@ dependencies:
   condition: ingresscontroller.enabled
   repository: "file://charts/ingress-nginx"
   version: 4.13.0
-#  
+# -------------- nginx gateway fabric (Gateway API) --------------
+- name: nginx-gateway-fabric
+  alias: gatewaycontroller
+  condition: gatewaycontroller.enabled
+  repository: "file://charts/nginx-gateway-fabric"
+  version: 2.3.0 
 description: authentik is an open-source Identity Provider focused on flexibility
   and versatility
 home: https://goauthentik.io

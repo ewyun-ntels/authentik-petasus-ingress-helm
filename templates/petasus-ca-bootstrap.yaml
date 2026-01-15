@@ -14,7 +14,7 @@ spec:
   duration: 876600h
   renewBefore: 8760h
   dnsNames:
-    - {{ include "authentik.server.fullname" $ }}
+    - {{ .Values.global.externalDomain }}
   privateKey:
     rotationPolicy: Never       
   issuerRef:

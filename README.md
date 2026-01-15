@@ -14,18 +14,52 @@ authentik is an open-source Identity Provider focused on flexibility and versati
 **Homepage:** <https://goauthentik.io>
 
 ## How to deploy:
+coreDNS
+```sh
+kubectl -n kube-system edit cm coredns
+  data:
+  NodeHosts: |
+    192.168.15.157(node-ip) console.petasus.local
+```
+node-local-dns
+```sh
+kubectl -n kube-system edit cm node-local-dns 
+petasus.local:53 {
+    errors
+    cache 30
+    reload
+    loop
+    bind 169.254.20.10
+    forward . 10.43.0.10 {
+            force_tcp
+    }
+    prometheus :9253
+    }  
+```
+
 1. Authentik, Ingress 설치
 
-global.brand.baseURL : 외부연동 IP:PORT 
+global.brand.baseURL : Domain:PORT 
 
 global.HTTPNodePort : NodePort
 ```shell
 helm upgrade --install petasus-access . \
   -n petasus-access --create-namespace \
-  --set-string global.brand.baseURL=https://192.168.15.157:30880 \
-  --set global.HTTPNodePort=30880
+  --set global.HTTPNodePort=30880 \
+  --set ingresscontroller.enabled=false \
+  --set gatewaycontroller.enabled=true \
+  --set server.ingress.enabled=false \
+  --set server.route.main.enabled=true 
+ OR
+helm upgrade --install petasus-access . \
+  -n petasus-access --create-namespace \
+  --set global.HTTPNodePort=30880 \
+  --set ingresscontroller.enabled=true \
+  --set gatewaycontroller.enabled=false \
+  --set server.ingress.enabled=true \
+  --set server.route.main.enabled=false 
 ```
-2. 설치가 완료된 후에 ks-console 용 ingress 배포
+2. 설치가 완료된 후에 ks-console 용 ingress 배포 (gateway-api 배포시에는 skip)
 ```shell
 kubectl apply -f post-install/ks-console-ingress.yaml
 ```

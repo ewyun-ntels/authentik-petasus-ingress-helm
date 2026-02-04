@@ -44,6 +44,9 @@ global.brand.baseURL : Domain:PORT
 global.HTTPNodePort : NodePort
 ```shell
 helm upgrade --install petasus-access . \
+  -n petasus-access --create-namespace          <- default gateway 방식
+ OR
+helm upgrade --install petasus-access . \
   -n petasus-access --create-namespace \
   --set global.HTTPNodePort=30880 \
   --set ingresscontroller.enabled=false \
@@ -201,6 +204,7 @@ The secret `authentik-postgres-credentials` must have `username` and `password` 
 | global.affinity.nodeAffinity.matchExpressions | list | `[]` | Default match expressions for node affinity |
 | global.affinity.nodeAffinity.type | string | `"hard"` | Default node affinity rules. Either `none`, `soft` or `hard` |
 | global.affinity.podAntiAffinity | string | `"soft"` | Default pod anti-affinity rules. Either: `none`, `soft` or `hard` |
+| global.denyFailThreshold | int | `-5` | Reputation threshold for login lockout. When a user's reputation score drops to this value or below, they will be temporarily blocked from logging in. |
 | global.deploymentAnnotations | object | `{}` | Annotations for all deployed Deployments |
 | global.deploymentStrategy | object | `{}` | Deployment strategy for all deployed Deployments |
 | global.env | list | `[]` (See [values.yaml]) | Environment variables to pass to all deployed Deployments. Does not apply to GeoIP See configuration options at https://goauthentik.io/docs/installation/configuration/ |
@@ -218,6 +222,8 @@ The secret `authentik-postgres-credentials` must have `username` and `password` 
 | global.podAnnotations | object | `{}` | Annotations for all deployed pods |
 | global.podLabels | object | `{}` | Labels for all deployed pods |
 | global.priorityClassName | string | `""` | Default priority class for all components |
+| global.reputationMin | int | `-20` | Reputation lower limit. Reputation score cannot decrease lower than this value. Used for System Settings. |
+| global.reputationMax | int | `0` | Reputation upper limit. Reputation score cannot increase higher than this value. Used for System Settings. |
 | global.revisionHistoryLimit | int | `3` |  |
 | global.secretAnnotations | object | `{}` | Annotations for all deployed secrets |
 | global.security.allowInsecureImages | bool | `true` |  |

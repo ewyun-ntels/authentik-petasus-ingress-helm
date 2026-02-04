@@ -231,6 +231,37 @@ data:
           target: !Find [authentik_flows.flow, [slug, petasus-authentication-flow]]
 
       # -------------------------
+      # Deny Stage for Login Lockout
+      # -------------------------
+      - model: authentik_policies_reputation.reputationpolicy
+        id: rp-deny-fails
+        identifiers:
+          name: "rp-deny-fails"
+        attrs:
+          check_ip: false
+          check_username: true
+          threshold: {{ .Values.global.denyFailThreshold }}
+
+      - model: authentik_stages_deny.denystage
+        identifiers:
+          name: "petasus-deny-lockout"
+        attrs:
+          deny_message: "로그인 실패가 누적되어 일시적으로 차단되었습니다. 관리자에게 문의 하세요."
+
+      - model: authentik_flows.flowstagebinding
+        id: petasus-deny-lockout-binding
+        identifiers:
+          order: 25
+          stage:  !Find [authentik_stages_deny.denystage, [name, "petasus-deny-lockout"]]
+          target: !Find [authentik_flows.flow, [slug, petasus-authentication-flow]]
+
+      - model: authentik_policies.policybinding
+        identifiers:
+          target: !KeyOf petasus-deny-lockout-binding
+          order: 0
+          policy: !KeyOf rp-deny-fails
+
+      # -------------------------
       # MFA Stage (Petasus 전용) + 조건 정책
       # -------------------------
       - model: authentik_stages_authenticator_totp.authenticatortotpstage

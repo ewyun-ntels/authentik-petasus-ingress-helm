@@ -18,6 +18,10 @@ global:
     #baseURL: &baseURL "https://console.petasus.local:30880"
     #baseURL: 'https://{{ .Values.global.externalDomain }}:{{ .Values.global.HTTPNodePort }}'
 
+  #reputationMin: -20
+  #reputationMax: 0
+  #range 5 ~ -5
+  denyFailThreshold: -5
 ## Petasus related configuration
 
   # To override bitnami images
@@ -609,7 +613,7 @@ server:
 
   ingress:
     # -- enable an ingress resource for the authentik server
-    enabled: true
+    enabled: false
     # -- additional ingress annotations
     proxySetHeaders: "ak-proxy-headers"
     # annotations: {}
@@ -659,7 +663,7 @@ server:
     main:
       # -- enable an HTTPRoute resource for the authentik server.
       # Be aware that this is an early beta of this feature. We don't guarantee this works and is subject to change.
-      enabled: false
+      enabled: true
       # -- Set the route apiVersion
       apiVersion: gateway.networking.k8s.io/v1
       # -- Set the route kind
@@ -1254,7 +1258,7 @@ additionalObjects: []
 
 # --- Ingress Controller configuration
 ingresscontroller:
-  enabled: true
+  enabled: false
   global:
     image:
       registry: registry.k8s.io
